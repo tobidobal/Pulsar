@@ -1,0 +1,315 @@
+/* --- PALETA DE COLORES YOUTUBE --- */
+:root {
+    --yt-bg: #0f0f0f;
+    /* Fondo oscuro de YouTube */
+    --yt-surface: #212121;
+    /* Color de los paneles/tarjetas */
+    --yt-red: #FF0000;
+    /* El rojo icónico */
+    --yt-text: #f1f1f1;
+    /* Texto principal (blanco suave) */
+    --yt-text-muted: #aaaaaa;
+    /* Texto secundario (gris) */
+    --yt-border: #333333;
+    /* Bordes oscuros */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--yt-bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: var(--yt-text);
+}
+
+.plugin-container {
+    background-color: var(--yt-surface);
+    width: 650px;
+    border-radius: 16px;
+    padding: 35px 40px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--yt-border);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.logo {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 0;
+    color: #fff;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.logo .highlight {
+    color: var(--yt-red);
+}
+
+/* Rojo plano de YouTube en la U */
+.slogan {
+    font-size: 14px;
+    color: var(--yt-text-muted);
+    margin-top: 8px;
+    font-weight: 400;
+}
+
+.slogan .resaltado {
+    color: var(--yt-text);
+    font-weight: 600;
+}
+
+.main-display {
+    background-color: #000;
+    height: 280px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: inset 0 0 0 1px var(--yt-border);
+    overflow: hidden;
+    position: relative;
+}
+
+.empty-state {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.empty-state p {
+    color: var(--yt-text-muted);
+    font-weight: 500;
+    font-size: 14px;
+    margin: 0;
+}
+
+.pulse-icon {
+    animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+}
+
+#player {
+    width: 100%;
+    height: 100%;
+}
+
+.settings-panel {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 40px;
+    margin-bottom: 25px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 15px 25px;
+    border-radius: 12px;
+    border: 1px solid var(--yt-border);
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.setting-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--yt-text-muted);
+    font-weight: 600;
+    padding-left: 2px;
+}
+
+.radio-group {
+    display: flex;
+    gap: 15px;
+    padding: 4px 0;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.radio-option input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--yt-red);
+    width: 16px;
+    height: 16px;
+}
+
+.radio-option label {
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--yt-text);
+    font-weight: 500;
+    margin: 0;
+}
+
+.path-selector {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.path-selector input {
+    background: var(--yt-bg);
+    border: 1px solid var(--yt-border);
+    color: var(--yt-text);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    outline: none;
+    width: 140px;
+    text-align: center;
+    font-family: inherit;
+}
+
+.btn-secundario {
+    background: var(--yt-border);
+    color: var(--yt-text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 14px;
+    transition: background 0.2s;
+    font-family: inherit;
+}
+
+.btn-secundario:hover {
+    background: #4d4d4d;
+}
+
+.input-group {
+    display: flex;
+    gap: 12px;
+}
+
+input[type="text"]#linkInput {
+    flex-grow: 1;
+    background-color: var(--yt-bg);
+    border: 1px solid var(--yt-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]#linkInput:focus {
+    border-color: var(--yt-red);
+}
+
+/* --- Botón Descargar con Animación Corregida --- */
+.btn-moderno {
+    --progress: 0%;
+    /* Variable que Python empuja */
+    background-color: var(--yt-bg);
+    /* El relleno de color rojo por encima del fondo, controlado por --progress */
+    background-image: linear-gradient(to right, var(--yt-red) var(--progress), transparent var(--progress));
+
+    border: 2px solid var(--yt-red);
+    color: var(--yt-red);
+    padding: 0 32px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    transition: color 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.btn-moderno:not(.downloading):hover {
+    background-color: var(--yt-red);
+    background-image: none;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
+.btn-moderno:active {
+    transform: translateY(1px);
+}
+
+.btn-moderno.downloading {
+    color: #fff;
+    border-color: transparent;
+    box-shadow: inset 0 0 0 2px var(--yt-red);
+    cursor: default;
+    pointer-events: none;
+}
+
+/* --- Modal de Éxito --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: var(--yt-surface);
+    border: 1px solid var(--yt-border);
+    padding: 30px;
+    border-radius: 12px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+}
+
+.modal-content h3 {
+    margin: 0 0 10px 0;
+    color: #fff;
+    font-size: 20px;
+}
+
+.modal-content p {
+    color: var(--yt-text-muted);
+    font-size: 14px;
+    margin: 0 0 25px 0;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}

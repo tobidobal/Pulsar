@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pulsar v0.3</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="/eel.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+</head>
+
+<body>
+    <div class="plugin-container">
+        <header>
+            <h1 class="logo"><span class="highlight">P</span>ulsar</h1>
+            <p class="slogan">Descarga audio y video <span class="resaltado">sin complicaciones.</span></p>
+        </header>
+
+        <div class="main-display" id="displayArea">
+            <div class="empty-state" id="emptyState">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--yt-red)" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" class="pulse-icon">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                <p>Esperando enlace...</p>
+            </div>
+            <div id="player" style="display: none;"></div>
+        </div>
+
+        <div class="settings-panel">
+            <div class="setting-group">
+                <span class="setting-label">Elegir Formato</span>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="optVideo" name="formato" value="video" checked>
+                        <label for="optVideo">Video (MP4)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="optAudio" name="formato" value="audio">
+                        <label for="optAudio">Audio (MP3)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <span class="setting-label">Ubicación de guardado</span>
+                <div class="path-selector">
+                    <input type="text" id="rutaInput" value="" readonly>
+                    <button id="btnRuta" class="btn-secundario">Cambiar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="linkInput" placeholder="Pegá el link acá..." autocomplete="off">
+            <button id="btnDownload" class="btn-moderno">DESCARGAR</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="successModal" style="display: none;">
+        <div class="modal-content">
+            <h3>¡Descarga Completada!</h3>
+            <p>El archivo se guardó correctamente.</p>
+            <div class="modal-buttons">
+                <button id="btnAbrirUbicacion" class="btn-secundario">Abrir Ubicación</button>
+                <button id="btnCerrarModal" class="btn-moderno">Listo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let player;
+        const linkInput = document.getElementById('linkInput');
+        const btnDownload = document.getElementById('btnDownload');
+        const btnRuta = document.getElementById('btnRuta');
+        const rutaInput = document.getElementById('rutaInput');
+        const emptyState = document.getElementById('emptyState');
+        const playerDiv = document.getElementById('player');
+        const successModal = document.getElementById('successModal');
+        const btnAbrirUbicacion = document.getElementById('btnAbrirUbicacion');
+        const btnCerrarModal = document.getElementById('btnCerrarModal');
+
+        // Establecer ruta por defecto al iniciar
+        async function init() {
+            try {
+                const ruta = await eel.obtener_ruta_defecto()();
+                rutaInput.value = ruta;
+            } catch (e) {
+                console.error("Error al obtener ruta por defecto:", e);
+                // Fallback si falla la llamada a eel
+                rutaInput.value = "C:\\Downloads"; 
+            }
+        }
+
+        // Llamar a init cuando el DOM esté listo, pero con un pequeño delay para asegurar Eel
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(init, 500); 
+        });
+
+        eel.expose(actualizar_progreso);
+        function actualizar_progreso(porcentaje) {
+            btnDownload.style.setProperty('--progress', porcentaje + '%');
+        }
+
+        function onYouTubeIframeAPIReady() {
+            linkInput.addEventListener('input', () => {
+                const url = linkInput.value;
+                const videoIdMatch = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11}).*/);
+                if (videoIdMatch) {
+                    const videoId = videoIdMatch[1];
+                    emptyState.style.display = 'none';
+                    playerDiv.style.display = 'block';
+                    if (player && typeof player.loadVideoById === 'function') {
+                        player.loadVideoById({ videoId: videoId, startSeconds: 0 });
+                    } else {
+                        player = new YT.Player('player', {
+                            height: '100%', width: '100%', videoId: videoId,
+                            playerVars: { 
+                                'autoplay': 1, 
+                                'controls': 1, 
+                                'start': 0, 
+                                'modestbranding': 1, 
+                                'rel': 0,
+                                'origin': window.location.origin
+                            }
+                        });
+                    }
+                } else if (url === "") {
+                    if (player && typeof player.destroy === 'function') {
+                        player.destroy(); player = null;
+                        const newPlayerDiv = document.createElement('div');
+                        newPlayerDiv.id = 'player'; newPlayerDiv.style.display = 'none';
+                        document.getElementById('displayArea').appendChild(newPlayerDiv);
+                    }
+                    emptyState.style.display = 'flex';
+                }
+            });
+        }
+
+        btnRuta.addEventListener('click', async () => {
+            rutaInput.value = await eel.seleccionar_carpeta(rutaInput.value)();
+        });
+
+        function resetInterfaz() {
+            successModal.style.display = 'none';
+            linkInput.value = "";
+            btnDownload.style.setProperty('--progress', '0%');
+        }
+
+        btnCerrarModal.addEventListener('click', resetInterfaz);
+        btnAbrirUbicacion.addEventListener('click', () => {
+            eel.abrir_ubicacion(rutaInput.value)();
+            resetInterfaz();
+        });
+
+        btnDownload.addEventListener('click', async () => {
+            const url = linkInput.value.trim();
+            if (!url) return;
+
+            if (url.includes("list=")) {
+                alert("Acá irá el Pop-Up de las Playlists muy pronto.");
+                return;
+            }
+
+            if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
+
+            const formato = document.querySelector('input[name="formato"]:checked').value;
+            const ruta = rutaInput.value;
+
+            btnDownload.classList.add('downloading');
+            btnDownload.style.setProperty('--progress', '0%');
+            btnDownload.innerText = "DESCARGANDO...";
+
+            const resultado = await eel.descargar_video(url, formato, ruta)();
+
+            btnDownload.classList.remove('downloading');
+            btnDownload.innerText = "DESCARGAR";
+
+            if (resultado.status === "success") {
+                successModal.style.display = 'flex';
+            } else {
+                alert("Error: " + resultado.mensaje);
+                btnDownload.style.setProperty('--progress', '0%');
+            }
+        });
+    </script>
+</body>
+
+</html>

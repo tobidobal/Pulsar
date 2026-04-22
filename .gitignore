@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# Build/Dist
+build/
+dist/
+ejecutable/
+release/
+*.spec
+
+# IDEs
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Windows
+Thumbs.db
+desktop.ini
