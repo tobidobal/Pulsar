@@ -53,7 +53,6 @@ header {
     color: var(--yt-red);
 }
 
-/* Rojo plano de YouTube en la U */
 .slogan {
     font-size: 14px;
     color: var(--yt-text-muted);
@@ -66,14 +65,32 @@ header {
     font-weight: 600;
 }
 
+/* --- Contenedor del video con ratio 16:9 nativo --- */
 .main-display {
     background-color: #000;
-    height: 280px;
     border-radius: 12px;
     margin-bottom: 25px;
     box-shadow: inset 0 0 0 1px var(--yt-border);
     overflow: hidden;
     position: relative;
+    /* Altura fija cuando está en empty state */
+    height: 280px;
+}
+
+/* Wrapper que fuerza aspect-ratio 16:9 cuando el player está activo */
+.player-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.player-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: none;
 }
 
 .empty-state {
@@ -210,17 +227,26 @@ header {
     background: #4d4d4d;
 }
 
+/* --- Input del link con botón × integrado --- */
 .input-group {
     display: flex;
     gap: 12px;
 }
 
-input[type="text"]#linkInput {
+.link-wrapper {
     flex-grow: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+input[type="text"]#linkInput {
+    width: 100%;
+    box-sizing: border-box;
     background-color: var(--yt-bg);
     border: 1px solid var(--yt-border);
     border-radius: 10px;
-    padding: 14px 16px;
+    padding: 14px 40px 14px 16px; /* padding-right extra para el botón × */
     color: #fff;
     font-size: 14px;
     outline: none;
@@ -232,17 +258,41 @@ input[type="text"]#linkInput:focus {
     border-color: var(--yt-red);
 }
 
+/* --- Botón × dentro del input --- */
+.btn-clear {
+    position: absolute;
+    right: 10px;
+    display: none; /* Se muestra solo con JS cuando hay texto */
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    border-radius: 50%;
+    color: var(--yt-text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    padding: 0;
+    line-height: 1;
+    backdrop-filter: blur(2px);
+}
+
+.btn-clear:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
 /* --- Botón Descargar con Animación Corregida --- */
 .btn-moderno {
     --progress: 0%;
-    /* Variable que Python empuja */
     background-color: var(--yt-bg);
-    /* El relleno de color rojo por encima del fondo, controlado por --progress */
     background-image: linear-gradient(to right, var(--yt-red) var(--progress), transparent var(--progress));
 
     border: 2px solid var(--yt-red);
     color: var(--yt-red);
-    padding: 0 32px;
+    padding: 10px 32px;
     font-weight: 600;
     letter-spacing: 0.5px;
     border-radius: 10px;
@@ -267,8 +317,16 @@ input[type="text"]#linkInput:focus {
     color: #fff;
     border-color: transparent;
     box-shadow: inset 0 0 0 2px var(--yt-red);
-    cursor: default;
-    pointer-events: none;
+    cursor: pointer;
+}
+
+#btnDownload {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 /* --- Modal de Éxito --- */
@@ -312,4 +370,88 @@ input[type="text"]#linkInput:focus {
     display: flex;
     gap: 10px;
     justify-content: center;
+}
+
+.equal-buttons {
+    width: 100%;
+}
+
+.equal-buttons button {
+    flex: 1;
+    padding: 10px 14px;
+    box-sizing: border-box;
+}
+
+/* --- Playlist Manager --- */
+.playlist-manager-content {
+    width: 450px;
+    max-width: 90vw;
+}
+
+.playlist-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.playlist-controls .btn-secundario {
+    flex: 1;
+}
+
+.playlist-list-container {
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--yt-bg);
+    border: 1px solid var(--yt-border);
+    border-radius: 8px;
+    margin-bottom: 25px;
+    padding: 10px;
+    text-align: left;
+}
+
+/* Custom scrollbar for playlist list */
+.playlist-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+.playlist-list-container::-webkit-scrollbar-track {
+    background: var(--yt-bg);
+    border-radius: 8px;
+}
+.playlist-list-container::-webkit-scrollbar-thumb {
+    background: var(--yt-border);
+    border-radius: 8px;
+}
+.playlist-list-container::-webkit-scrollbar-thumb:hover {
+    background: #4d4d4d;
+}
+
+.playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 5px;
+    border-bottom: 1px solid var(--yt-border);
+}
+
+.playlist-item:last-child {
+    border-bottom: none;
+}
+
+.playlist-item input[type="checkbox"] {
+    accent-color: var(--yt-red);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.playlist-item label {
+    font-size: 13px;
+    color: var(--yt-text);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
 }

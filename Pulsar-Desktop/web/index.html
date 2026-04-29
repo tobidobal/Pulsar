@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Pulsar v0.3</title>
+    <title>Pulsar</title>
+    <link rel="icon" type="image/png" href="pulsar_logo_final.png">
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="/eel.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -25,7 +26,9 @@
                 </svg>
                 <p>Esperando enlace...</p>
             </div>
-            <div id="player" style="display: none;"></div>
+            <div class="player-wrapper" id="playerWrapper" style="display: none;">
+                <div id="player"></div>
+            </div>
         </div>
 
         <div class="settings-panel">
@@ -53,7 +56,10 @@
         </div>
 
         <div class="input-group">
-            <input type="text" id="linkInput" placeholder="Pegá el link acá..." autocomplete="off">
+            <div class="link-wrapper">
+                <input type="text" id="linkInput" placeholder="Pegá el link acá..." autocomplete="off">
+                <button id="btnClearLink" class="btn-clear" title="Limpiar">&#x2715;</button>
+            </div>
             <button id="btnDownload" class="btn-moderno">DESCARGAR</button>
         </div>
     </div>
@@ -69,6 +75,46 @@
         </div>
     </div>
 
+    <!-- Modal de Enlace Inválido -->
+    <div class="modal-overlay" id="invalidUrlModal" style="display: none;">
+        <div class="modal-content">
+            <h3>Enlace Inválido</h3>
+            <p>Por favor, ingresa un link válido de YouTube.</p>
+            <div class="modal-buttons">
+                <button id="btnCerrarInvalidUrl" class="btn-moderno">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales de Playlist -->
+    <div class="modal-overlay" id="playlistDetectedModal" style="display: none;">
+        <div class="modal-content">
+            <h3>Playlist Detectada</h3>
+            <p>El enlace contiene una lista de reproducción. ¿Qué querés hacer?</p>
+            <div class="modal-buttons equal-buttons">
+                <button id="btnCancelPlaylist" class="btn-secundario">Cancelar</button>
+                <button id="btnContinuePlaylist" class="btn-moderno">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="playlistManagerModal" style="display: none;">
+        <div class="modal-content playlist-manager-content">
+            <h3>Gestor de Playlist</h3>
+            <p id="playlistLoadingText" style="display:none; color: var(--yt-red); font-size: 13px; margin-bottom: 15px;">Cargando información, por favor espera...</p>
+            <div class="playlist-controls">
+                <button id="btnToggleSelection" class="btn-secundario" data-state="no-selection">Seleccionar Todo</button>
+            </div>
+            <div class="playlist-list-container" id="playlistList">
+                <!-- Items de playlist inyectados con JS -->
+            </div>
+            <div class="modal-buttons equal-buttons">
+                <button id="btnCancelManager" class="btn-secundario">Cancelar</button>
+                <button id="btnContinueManager" class="btn-moderno">Continuar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let player;
         const linkInput = document.getElementById('linkInput');
@@ -76,10 +122,13 @@
         const btnRuta = document.getElementById('btnRuta');
         const rutaInput = document.getElementById('rutaInput');
         const emptyState = document.getElementById('emptyState');
-        const playerDiv = document.getElementById('player');
+        const playerWrapper = document.getElementById('playerWrapper');
         const successModal = document.getElementById('successModal');
+        const invalidUrlModal = document.getElementById('invalidUrlModal');
         const btnAbrirUbicacion = document.getElementById('btnAbrirUbicacion');
         const btnCerrarModal = document.getElementById('btnCerrarModal');
+        const btnCerrarInvalidUrl = document.getElementById('btnCerrarInvalidUrl');
+        const btnClearLink = document.getElementById('btnClearLink');
 
         // Establecer ruta por defecto al iniciar
         async function init() {
@@ -88,14 +137,12 @@
                 rutaInput.value = ruta;
             } catch (e) {
                 console.error("Error al obtener ruta por defecto:", e);
-                // Fallback si falla la llamada a eel
-                rutaInput.value = "C:\\Downloads"; 
+                rutaInput.value = "C:\\Downloads";
             }
         }
 
-        // Llamar a init cuando el DOM esté listo, pero con un pequeño delay para asegurar Eel
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(init, 500); 
+            setTimeout(init, 500);
         });
 
         eel.expose(actualizar_progreso);
@@ -103,37 +150,56 @@
             btnDownload.style.setProperty('--progress', porcentaje + '%');
         }
 
+        // --- Botón × para limpiar el link ---
+        function actualizarBtnClear() {
+            btnClearLink.style.display = linkInput.value.length > 0 ? 'flex' : 'none';
+        }
+
+        btnClearLink.addEventListener('click', () => {
+            linkInput.value = '';
+            actualizarBtnClear();
+            destroyPlayer();
+        });
+
+        // --- Destruir player y volver al empty state ---
+        function destroyPlayer() {
+            if (player && typeof player.destroy === 'function') {
+                player.destroy();
+                player = null;
+            }
+            // Restaurar el div player para próxima vez
+            const oldWrapper = document.getElementById('playerWrapper');
+            oldWrapper.innerHTML = '<div id="player"></div>';
+            playerWrapper.style.display = 'none';
+            emptyState.style.display = 'flex';
+        }
+
         function onYouTubeIframeAPIReady() {
             linkInput.addEventListener('input', () => {
+                actualizarBtnClear();
                 const url = linkInput.value;
                 const videoIdMatch = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11}).*/);
                 if (videoIdMatch) {
                     const videoId = videoIdMatch[1];
                     emptyState.style.display = 'none';
-                    playerDiv.style.display = 'block';
+                    playerWrapper.style.display = 'block';
                     if (player && typeof player.loadVideoById === 'function') {
                         player.loadVideoById({ videoId: videoId, startSeconds: 0 });
                     } else {
                         player = new YT.Player('player', {
-                            height: '100%', width: '100%', videoId: videoId,
-                            playerVars: { 
-                                'autoplay': 1, 
-                                'controls': 1, 
-                                'start': 0, 
-                                'modestbranding': 1, 
+                            videoId: videoId,
+                            playerVars: {
+                                'autoplay': 1,
+                                'controls': 1,
+                                'start': 0,
+                                'modestbranding': 1,
                                 'rel': 0,
                                 'origin': window.location.origin
                             }
                         });
                     }
-                } else if (url === "") {
-                    if (player && typeof player.destroy === 'function') {
-                        player.destroy(); player = null;
-                        const newPlayerDiv = document.createElement('div');
-                        newPlayerDiv.id = 'player'; newPlayerDiv.style.display = 'none';
-                        document.getElementById('displayArea').appendChild(newPlayerDiv);
-                    }
-                    emptyState.style.display = 'flex';
+                } else if (url === '') {
+                    destroyPlayer();
                 }
             });
         }
@@ -144,8 +210,10 @@
 
         function resetInterfaz() {
             successModal.style.display = 'none';
-            linkInput.value = "";
+            linkInput.value = '';
+            actualizarBtnClear();
             btnDownload.style.setProperty('--progress', '0%');
+            destroyPlayer();
         }
 
         btnCerrarModal.addEventListener('click', resetInterfaz);
@@ -154,37 +222,220 @@
             resetInterfaz();
         });
 
+        let isHoveringDownload = false;
+        let currentDownloadText = 'DESCARGAR';
+
+        btnDownload.addEventListener('mouseenter', () => {
+            if (isDownloading) {
+                isHoveringDownload = true;
+                btnDownload.innerText = 'CANCELAR';
+            }
+        });
+
+        btnDownload.addEventListener('mouseleave', () => {
+            if (isDownloading) {
+                isHoveringDownload = false;
+                btnDownload.innerText = currentDownloadText;
+            }
+        });
+
+        async function processDownloads(videos) {
+            isDownloading = true;
+            cancelRequested = false;
+            eel.iniciar_lote()(); // Iniciar lote de descarga para limpieza en caso de cancelar
+
+            btnDownload.classList.add('downloading');
+
+            let hasErrors = false;
+            const formato = document.querySelector('input[name="formato"]:checked').value;
+            const ruta = rutaInput.value;
+
+            for (let i = 0; i < videos.length; i++) {
+                if (cancelRequested) break;
+                
+                const video = videos[i];
+                btnDownload.style.setProperty('--progress', '0%');
+                
+                if (videos.length > 1) {
+                    currentDownloadText = `(${i + 1}/${videos.length}) DESCARGANDO...`;
+                } else {
+                    currentDownloadText = 'DESCARGANDO...';
+                }
+                
+                if (!isHoveringDownload) {
+                    btnDownload.innerText = currentDownloadText;
+                }
+                
+                const urlToDownload = typeof video === 'string' ? video : video.url;
+                const resultado = await eel.descargar_video(urlToDownload, formato, ruta)();
+                
+                if (resultado.status !== 'success') {
+                    if (!cancelRequested) hasErrors = true;
+                }
+            }
+
+            isDownloading = false;
+            btnDownload.classList.remove('downloading');
+            currentDownloadText = 'DESCARGAR';
+            btnDownload.innerText = currentDownloadText;
+            btnDownload.style.setProperty('--progress', '0%');
+
+            if (cancelRequested) {
+                resetInterfaz();
+            } else {
+                if (hasErrors) {
+                    alert(videos.length > 1 ? "Algunos videos fallaron al descargar." : "Error en la descarga.");
+                } else {
+                    successModal.style.display = 'flex';
+                }
+            }
+        }
+
         btnDownload.addEventListener('click', async () => {
+            if (isDownloading) {
+                // Si ya está descargando, el click funciona como cancelar
+                cancelRequested = true;
+                await eel.cancelar_descarga(rutaInput.value)();
+                currentDownloadText = 'CANCELANDO...';
+                btnDownload.innerText = currentDownloadText;
+                return;
+            }
+
             const url = linkInput.value.trim();
             if (!url) return;
 
-            if (url.includes("list=")) {
-                alert("Acá irá el Pop-Up de las Playlists muy pronto.");
+            const isYouTubeUrl = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)*(youtube\.com|youtu\.be)\/.+$/.test(url);
+            if (!isYouTubeUrl) {
+                invalidUrlModal.style.display = 'flex';
+                resetInterfaz();
                 return;
             }
 
             if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
 
-            const formato = document.querySelector('input[name="formato"]:checked').value;
-            const ruta = rutaInput.value;
-
-            btnDownload.classList.add('downloading');
-            btnDownload.style.setProperty('--progress', '0%');
-            btnDownload.innerText = "DESCARGANDO...";
-
-            const resultado = await eel.descargar_video(url, formato, ruta)();
-
-            btnDownload.classList.remove('downloading');
-            btnDownload.innerText = "DESCARGAR";
-
-            if (resultado.status === "success") {
-                successModal.style.display = 'flex';
-            } else {
-                alert("Error: " + resultado.mensaje);
-                btnDownload.style.setProperty('--progress', '0%');
+            if (url.includes("list=")) {
+                playlistDetectedModal.style.display = 'flex';
+                return;
             }
+
+            await processDownloads([url]);
+        });
+
+        btnCerrarInvalidUrl.addEventListener('click', () => {
+            invalidUrlModal.style.display = 'none';
+        });
+
+        // --- Lógica de Modales de Playlist ---
+        const playlistDetectedModal = document.getElementById('playlistDetectedModal');
+        const playlistManagerModal = document.getElementById('playlistManagerModal');
+        const btnCancelPlaylist = document.getElementById('btnCancelPlaylist');
+        const btnContinuePlaylist = document.getElementById('btnContinuePlaylist');
+        const btnCancelManager = document.getElementById('btnCancelManager');
+        const btnContinueManager = document.getElementById('btnContinueManager');
+        const btnToggleSelection = document.getElementById('btnToggleSelection');
+        const playlistList = document.getElementById('playlistList');
+        const playlistLoadingText = document.getElementById('playlistLoadingText');
+        
+        let playlistVideos = [];
+        let isDownloading = false;
+        let cancelRequested = false;
+
+        btnCancelPlaylist.addEventListener('click', () => {
+            playlistDetectedModal.style.display = 'none';
+            resetInterfaz();
+        });
+
+        function checkPlaylistSelection() {
+            const hasSelection = document.querySelectorAll('.playlist-item input[type="checkbox"]:checked').length > 0;
+            if (hasSelection) {
+                btnToggleSelection.dataset.state = 'has-selection';
+                btnToggleSelection.innerText = 'Seleccionar Todo'; // Por defecto muestra Seleccionar Todo, en hover cambiará
+            } else {
+                btnToggleSelection.dataset.state = 'no-selection';
+                btnToggleSelection.innerText = 'Seleccionar Todo';
+            }
+        }
+
+        btnContinuePlaylist.addEventListener('click', async () => {
+            playlistDetectedModal.style.display = 'none';
+            playlistManagerModal.style.display = 'flex';
+            playlistList.innerHTML = '';
+            playlistLoadingText.style.display = 'block';
+            btnContinueManager.style.opacity = '0.5';
+            btnContinueManager.style.pointerEvents = 'none';
+
+            const url = linkInput.value.trim();
+            const response = await eel.obtener_info_playlist(url)();
+            
+            playlistLoadingText.style.display = 'none';
+            
+            if (response && response.status === 'success') {
+                playlistVideos = response.videos;
+                if (playlistVideos.length === 0) {
+                    playlistList.innerHTML = '<p style="text-align:center; color:#aaa; font-size:14px; margin-top:20px;">No se encontraron videos en esta playlist.</p>';
+                } else {
+                    btnContinueManager.style.opacity = '1';
+                    btnContinueManager.style.pointerEvents = 'auto';
+                    playlistVideos.forEach((video, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'playlist-item';
+                        div.innerHTML = `
+                            <input type="checkbox" id="vid_${index}" value="${index}" checked>
+                            <label for="vid_${index}">${video.title}</label>
+                        `;
+                        playlistList.appendChild(div);
+                        
+                        div.querySelector('input').addEventListener('change', checkPlaylistSelection);
+                    });
+                    checkPlaylistSelection();
+                }
+            } else {
+                const errorMsg = response ? response.mensaje : "Error desconocido o tiempo de espera agotado.";
+                playlistList.innerHTML = `<p style="text-align:center; color:var(--yt-red); font-size:14px; margin-top:20px;">Error al cargar playlist: ${errorMsg}</p>`;
+            }
+        });
+
+        btnToggleSelection.addEventListener('mouseenter', () => {
+            if (btnToggleSelection.dataset.state === 'has-selection') {
+                btnToggleSelection.innerText = 'Deshacer selección';
+            }
+        });
+
+        btnToggleSelection.addEventListener('mouseleave', () => {
+            btnToggleSelection.innerText = 'Seleccionar Todo';
+        });
+
+        btnToggleSelection.addEventListener('click', () => {
+            if (btnToggleSelection.innerText === 'Deshacer selección') {
+                document.querySelectorAll('.playlist-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+                btnToggleSelection.dataset.state = 'no-selection';
+                btnToggleSelection.innerText = 'Seleccionar Todo'; // Fuerza actualizar texto si el mouse sigue arriba, o al menos espera al próximo hover.
+            } else {
+                document.querySelectorAll('.playlist-item input[type="checkbox"]').forEach(cb => cb.checked = true);
+                btnToggleSelection.dataset.state = 'has-selection';
+                btnToggleSelection.innerText = 'Deshacer selección';
+            }
+        });
+
+        btnCancelManager.addEventListener('click', () => {
+            playlistManagerModal.style.display = 'none';
+            resetInterfaz();
+        });
+
+        btnContinueManager.addEventListener('click', async () => {
+            const selectedCheckboxes = document.querySelectorAll('.playlist-item input[type="checkbox"]:checked');
+            if (selectedCheckboxes.length === 0) return;
+
+            const selectedVideos = [];
+            for (let i = 0; i < selectedCheckboxes.length; i++) {
+                const index = selectedCheckboxes[i].value;
+                selectedVideos.push(playlistVideos[index]);
+            }
+
+            playlistManagerModal.style.display = 'none';
+            await processDownloads(selectedVideos);
         });
     </script>
 </body>
 
-</html>
+</html>

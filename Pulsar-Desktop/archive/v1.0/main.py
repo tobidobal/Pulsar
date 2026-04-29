@@ -1,8 +1,19 @@
+import sys
+import os
+import subprocess
+import shutil
 import tkinter as tk
 from tkinter import filedialog, messagebox
-import subprocess
-import os
-import shutil
+
+# --- CONFIGURACIÓN PARA PORTABILIDAD ---
+def resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+# Añadir carpeta 'bin' al PATH para que yt-dlp encuentre ffmpeg automáticamente
+bin_path = resource_path('bin')
+if os.path.exists(bin_path):
+    os.environ['PATH'] = bin_path + os.pathsep + os.environ.get('PATH', '')
 
 def seleccionar_carpeta():
     carpeta = filedialog.askdirectory(initialdir=entrada_ruta.get())
@@ -37,9 +48,9 @@ def descargar():
     try:
         # Armar el comando según lo que elegiste
         if tipo == "Video":
-            comando = ['yt-dlp', enlace]
+            comando = ['yt-dlp', '--no-playlist', '--format', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best', '--merge-output-format', 'mp4', '-o', '%(title)s.%(ext)s', enlace]
         else:
-            comando = ['yt-dlp', '-x', '--audio-format', 'mp3', '--audio-quality', '0', enlace]
+            comando = ['yt-dlp', '--no-playlist', '-x', '--audio-format', 'mp3', '--audio-quality', '0', '-o', '%(title)s.%(ext)s', enlace]
 
         # Ejecutar yt-dlp silenciosamente en segundo plano
         subprocess.run(comando, cwd=ruta, check=True, creationflags=subprocess.CREATE_NO_WINDOW)
@@ -54,7 +65,7 @@ def descargar():
 
 # --- CONFIGURACIÓN DE LA VENTANA ---
 root = tk.Tk()
-root.title("Pulsar v1.0 - Descargador")
+root.title("Pulsar v1.0")
 root.geometry("450x250")
 root.eval('tk::PlaceWindow . center') # Centrar la ventana en la pantalla
 
@@ -67,8 +78,8 @@ entrada_enlace.pack()
 variable_tipo = tk.StringVar(value="Video")
 frame_opciones = tk.Frame(root)
 frame_opciones.pack(pady=10)
-tk.Radiobutton(frame_opciones, text="Video (Máxima calidad)", variable=variable_tipo, value="Video").pack(side=tk.LEFT, padx=10)
-tk.Radiobutton(frame_opciones, text="Audio (MP3 320kbps)", variable=variable_tipo, value="Audio").pack(side=tk.LEFT, padx=10)
+tk.Radiobutton(frame_opciones, text="Video (MP4)", variable=variable_tipo, value="Video").pack(side=tk.LEFT, padx=10)
+tk.Radiobutton(frame_opciones, text="Audio (MP3)", variable=variable_tipo, value="Audio").pack(side=tk.LEFT, padx=10)
 
 # 3. Selección de carpeta
 tk.Label(root, text="Carpeta de destino:").pack(pady=(5, 5))
@@ -92,4 +103,4 @@ tk.Button(frame_ruta, text="Buscar", command=seleccionar_carpeta).pack(side=tk.L
 boton_confirmar = tk.Button(root, text="Confirmar y Descargar", command=descargar, bg="#d4edda", font=("Arial", 10, "bold"))
 boton_confirmar.pack(pady=20)
 
-root.mainloop()
+root.mainloop()

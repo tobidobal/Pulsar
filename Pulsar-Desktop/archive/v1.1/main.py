@@ -1,8 +1,19 @@
+import sys
+import os
+import subprocess
+import shutil
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
-import subprocess
-import os
-import shutil
+
+# --- CONFIGURACIÓN PARA PORTABILIDAD ---
+def resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+# Añadir carpeta 'bin' al PATH para que yt-dlp encuentre ffmpeg automáticamente
+bin_path = resource_path('bin')
+if os.path.exists(bin_path):
+    os.environ['PATH'] = bin_path + os.pathsep + os.environ.get('PATH', '')
 
 # --- TEMA Y COLORES DE CUSTOMTKINTER ---
 ctk.set_appearance_mode("System")  
@@ -38,9 +49,9 @@ def descargar():
 
     try:
         if tipo == "Video":
-            comando = ['yt-dlp', '--no-playlist', enlace]
+            comando = ['yt-dlp', '--no-playlist', '--format', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best', '--merge-output-format', 'mp4', '-o', '%(title)s.%(ext)s', enlace]
         else:
-            comando = ['yt-dlp', '--no-playlist', '-x', '--audio-format', 'mp3', '--audio-quality', '0', enlace]
+            comando = ['yt-dlp', '--no-playlist', '-x', '--audio-format', 'mp3', '--audio-quality', '0', '-o', '%(title)s.%(ext)s', enlace]
 
         subprocess.run(comando, cwd=ruta, check=True, creationflags=subprocess.CREATE_NO_WINDOW)
         messagebox.showinfo("¡Éxito!", f"Descarga de {tipo} completada en:\n{ruta}")
@@ -52,7 +63,7 @@ def descargar():
 
 # --- CONFIGURACIÓN DE LA VENTANA ---
 root = ctk.CTk()
-root.title("Pulsar v0.2")
+root.title("Pulsar v1.1")
 root.geometry("500x320")
 
 # Centrar la ventana de forma manual para evitar problemas con root.eval
@@ -78,7 +89,7 @@ variable_tipo = ctk.StringVar(value="Video")
 frame_opciones = ctk.CTkFrame(root, fg_color="transparent")
 frame_opciones.pack(pady=10)
 ctk.CTkRadioButton(frame_opciones, text="Video (MP4)", variable=variable_tipo, value="Video").pack(side="left", padx=20)
-ctk.CTkRadioButton(frame_opciones, text="Audio (MP3 320kbps)", variable=variable_tipo, value="Audio").pack(side="left", padx=20)
+ctk.CTkRadioButton(frame_opciones, text="Audio (MP3)", variable=variable_tipo, value="Audio").pack(side="left", padx=20)
 
 # 3. Selección de carpeta
 frame_ruta = ctk.CTkFrame(root, fg_color="transparent")
@@ -111,4 +122,3 @@ if __name__ == "__main__":
         dummy.withdraw()
         messagebox.showerror("Error de Inicio", f"El programa no pudo iniciarse:\n{e}")
         dummy.destroy()
-
