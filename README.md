@@ -6,45 +6,47 @@
 
 ## Español
 
-**Pulsar** es una suite de herramientas diseñada para descargar y procesar contenido de YouTube de manera eficiente, elegante y sencilla. Este proyecto representa la evolución desde un descargador básico hasta una aplicación robusta con una interfaz premium y moderna.
+**Pulsar** es una aplicación de escritorio diseñada para descargar y procesar contenido de YouTube de manera eficiente, elegante y sencilla. Este proyecto representa la evolución desde un descargador básico hasta una aplicación robusta con una interfaz premium y moderna.
 
-### 📁 [Pulsar Desktop Suite](./Pulsar-Desktop)
-Nuestra potente suite de escritorio para Windows.
-- **Versión Actual (v1.2):** Interfaz Web moderna e intuitiva (Python + Eel), previsualización de videos integrada, descargas de listas de reproducción cancelables, eliminación automática de archivos temporales y un motor de red optimizado.
-- **Versiones Históricas:** Las versiones `v1.1` y `v1.0` se encuentran alojadas en la subcarpeta `archive/` dentro de la versión de escritorio, a modo de documentación histórica.
+### 📁 Versión Actual (v1.2)
+Nuestra potente aplicación de escritorio para Windows.
+- Interfaz Web moderna e intuitiva (Python + Eel).
+- Previsualización de videos integrada en tiempo real.
+- Gestor inteligente de Playlists con descargas secuenciales.
+- Cancelación robusta y eliminación automática de archivos temporales.
+- Motor de red optimizado con `yt-dlp`.
 
-#### Instalación y Uso (Escritorio)
-1. Entra a la carpeta `Pulsar-Desktop/`.
-2. Ejecuta `install_requirements.bat` para configurar tu entorno automáticamente (solo es necesario la primera vez).
-3. Ejecuta `run_Pulsar_v1.2.bat` para iniciar la aplicación localmente.
+### 📂 Versiones Históricas
+Las versiones `v1.1` y `v1.0` se encuentran alojadas en la subcarpeta `archive/`, a modo de documentación histórica y de evolución del código.
 
-*(Para usuarios finales, el programa también puede empaquetarse en un archivo portable de ejecución directa).*
+### 🛠 Instalación y Uso
+1. Ejecuta `install_requirements.bat` para configurar tu entorno automáticamente (solo es necesario la primera vez).
+2. Ejecuta `run_Pulsar_v1.2.bat` para iniciar la aplicación localmente.
 
-### 🌐 [Pulsar Web App (En desarrollo)](./Pulsar-Web)
-Espacio reservado para el desarrollo futuro de la plataforma 100% online y los prototipos de diseño UI/UX.
-- **Estado:** Estructura preparada para el trabajo de diseño y web.
+*(Para usuarios finales, el programa también puede empaquetarse en un archivo portable de ejecución directa, el cual se generó en la carpeta `dist/` si se utilizó PyInstaller).*
 
 ---
 
 ## English
 
-**Pulsar** is a tool suite designed to download and process YouTube content efficiently, elegantly, and simply. This project represents the evolution from a basic downloader to a robust application with a modern, premium interface.
+**Pulsar** is a desktop application designed to download and process YouTube content efficiently, elegantly, and simply. This project represents the evolution from a basic downloader to a robust application with a modern, premium interface.
 
-### 📁 [Pulsar Desktop Suite](./Pulsar-Desktop)
-Our powerful desktop suite for Windows.
-- **Latest Version (v1.2):** Modern and intuitive Web interface (Python + Eel), integrated video preview, cancelable playlist downloads, automatic temporary file cleanup, and an optimized network engine.
-- **Legacy Versions:** Versions `v1.1` and `v1.0` are located in the `archive/` subfolder within the desktop version, serving as historical documentation.
+### 📁 Latest Version (v1.2)
+Our powerful desktop application for Windows.
+- Modern and intuitive Web interface (Python + Eel).
+- Integrated real-time video preview.
+- Smart Playlist manager with sequential downloads.
+- Robust cancellation and automatic temporary file cleanup.
+- Optimized network engine using `yt-dlp`.
 
-#### Installation and Usage (Desktop)
-1. Navigate to the `Pulsar-Desktop/` folder.
-2. Run `install_requirements.bat` to set up your environment automatically (only required the first time).
-3. Run `run_Pulsar_v1.2.bat` to launch the local application.
+### 📂 Legacy Versions
+Versions `v1.1` and `v1.0` are located in the `archive/` subfolder, serving as historical documentation and code evolution tracking.
 
-*(For end users, the program can also be packaged into a standalone portable executable).*
+### 🛠 Installation and Usage
+1. Run `install_requirements.bat` to set up your environment automatically (only required the first time).
+2. Run `run_Pulsar_v1.2.bat` to launch the local application.
 
-### 🌐 [Pulsar Web App (In Development)](./Pulsar-Web)
-Space reserved for the future development of the 100% online platform and UI/UX design prototypes.
-- **Status:** Structure prepared for design and web work.
+*(For end users, the program can also be packaged into a standalone portable executable, which was generated in the `dist/` folder if PyInstaller was used).*
 
 ---
 *Creado por [@tobidobal](https://www.instagram.com/tobidobal/) con el apoyo técnico de Antigravity.*
